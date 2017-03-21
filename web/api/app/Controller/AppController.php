@@ -21,6 +21,11 @@
 App::uses('Controller', 'Controller');
 App::uses('CrudControllerTrait', 'Crud.Lib');
 
+	function Error($msg) {
+		echo "ERROR called: $msg\n";
+	}
+
+
 /**
  * Application Controller
  *
@@ -85,6 +90,34 @@ class AppController extends Controller {
         } else {
           $this->Session->Write( 'user.Username', $user['User']['Username'] );
           $this->Session->Write( 'user.Enabled', $user['User']['Enabled'] );
+	  $this->Session->Write( 'user.PasswordHash', $user['User']['Password'] );
+        }
+      }
+
+      if ( isset($_REQUEST['auth']) ) {
+	require_once "../../../includes/functions.php";
+	$defines = array('ZM_AUTH_HASH_IPS', 'ZM_AUTH_HASH_SECRET', 'ZM_AUTH_RELAY', 'ZM_OPT_USE_AUTH');
+	$config = $this->Config->find('list', array(
+						    'conditions' => array('OR' => array(
+											'Name' => $defines,
+											)),
+						    'fields' => array('Name', 'Value')
+						    ));
+
+
+
+	foreach ($defines as $define) {
+		//echo "$define " . $config[$define]. "\n";
+		define($define, $config[$define]);
+	}
+	$user = getAuthUser($_REQUEST['auth']);
+        if ( ! $user ) {
+          throw new UnauthorizedException(__('User not found'));
+          return;
+        } else {
+          $this->Session->Write( 'user.Username', $user['Username'] );
+          $this->Session->Write( 'user.Enabled', $user['Enabled'] );
+	  $this->Session->Write( 'user.PasswordHash', $user['Password'] );
         }
       }
 

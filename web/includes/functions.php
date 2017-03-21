@@ -27,6 +27,9 @@ if ( version_compare( phpversion(), "4.3.0", "<") ) {
   }
 }
 
+//require_once( 'logger.php' );
+require_once( 'database.php' );
+
 function userLogin( $username, $password="", $passwordHashed=false ) {
   global $user, $cookies;
 
@@ -127,8 +130,9 @@ function getAuthUser( $auth ) {
       for ( $i = 0; $i < 2; $i++, $now -= (60*60) ) { // Try for last two hours
         $time = localtime( $now );
         $authKey = ZM_AUTH_HASH_SECRET.$user['Username'].$user['Password'].$remoteAddr.$time[2].$time[3].$time[4].$time[5];
-        $authHash = md5( $authKey );
 
+        $authHash = md5( $authKey );
+	//echo "$authKey : $authHash \n";
         if ( $auth == $authHash ) {
           return( $user );
         }
@@ -148,6 +152,7 @@ function generateAuthHash( $useRemoteAddr ) {
       $authKey = ZM_AUTH_HASH_SECRET.$_SESSION['username'].$_SESSION['passwordHash'].$time[2].$time[3].$time[4].$time[5];
     }
     $auth = md5( $authKey );
+    //echo "$authKey : $auth\n";
   } else {
     $auth = "";
   }

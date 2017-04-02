@@ -2,8 +2,41 @@
 App::uses('AppController', 'Controller');
 
 class HostController extends AppController {
-	
+
 	public $components = array('RequestHandler');
+
+	public function login() { // TODO: rename if not starting a session. Need session for new hash?
+		$defines = array('ZM_OPT_USE_AUTH', 'ZM_AUTH_RELAY', 'ZM_AUTH_HASH_SECRET');
+		$config = $this->Config->find('list', array(
+			'conditions' => array('OR' => array(
+							    'Name' => $defines,
+			)),
+			'fields' => array('Name', 'Value')
+		));
+
+
+
+		foreach ($defines as $define) {
+			//echo "$define " . $config[$define]. "\n";
+		  define($define, $config[$define]);
+		}
+
+
+		//		require_once "../../../includes/config.php";
+		require_once "../../../includes/functions.php";
+		$_SESSION['username'] = $this->Session->Read('user.Username');
+		$_SESSION['passwordHash'] = $this->Session->Read('user.PasswordHash');
+		// TODO: remoteAddr
+		$result = array(
+				 'username' => $this->Session->Read('user.Username'),
+				 // TODO: Generate an auth hash even for the API even if AUTH_RELAY plain or none
+				 'authHash' => generateAuthHash(false), // TODO: arg.
+				);
+		$this->set(array(
+				 'result' => $result,
+				 '_serialize' => array('result'),
+		));
+	}
 
 	public function daemonCheck($daemon=false, $args=false) {
     $string = Configure::read('ZM_PATH_BIN')."/zmdc.pl check";
